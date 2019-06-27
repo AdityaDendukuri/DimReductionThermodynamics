@@ -3,6 +3,10 @@ Author:  Aditya Dendukuri
 Institution: University of Arkansas
 adenduku@email.uark.edu
 
+
+Using machine learning to reduce dimensionality of Molecular Dynamics
+Systems 
+
 ------------------------------------------------------------------
 NEURAL NETWORK:							 
 I implemented this in tensorflow. All of the code is written 
