@@ -13,7 +13,3 @@ There are two code files: "diffmaps.py" and "diffmaps_backend.py"
 just need to run "diffmaps.py". No ML library was used for this. 
 Only used numpy for linear algebra.  
 ------------------------------------------------------------------
-REPORT:
-Since there is a 4 page limit for the report I omitted some diagrams which are in the slides.  
-------------------------------------------------------------------
-
