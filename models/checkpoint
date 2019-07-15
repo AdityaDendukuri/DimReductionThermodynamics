@@ -1,2 +1,2 @@
-model_checkpoint_path: "TransRot0.18.ckpt"
-all_model_checkpoint_paths: "TransRot0.18.ckpt"
+model_checkpoint_path: "TransRot0.18_3.ckpt"
+all_model_checkpoint_paths: "TransRot0.18_3.ckpt"

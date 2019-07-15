@@ -16,7 +16,6 @@ import random
 import itertools
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from numba import jit
 
 
 simulation_min = np.array([-5.0, -5.0, -5.0])
@@ -24,18 +23,18 @@ simulation_max = np.array([5.0, 5.0, 5.0])
 side_length = (simulation_max - simulation_min)
 
 
-
-class diff_map_solver(object):
+class diff_map_solver:
       #initialize variables
       def __init__(self, constants):
             self.dim_H = constants['dim_H']
             self.constants = constants
-            self.num_input = constants['num_data']
+            self.num_input = 0
             self.sigma = 1.0
             self.num_particles = constants['num_particles']
             self.num_data = constants['num_data']
             #self.distance_range = [0.0, 1.3]
             self.distance_range = [0.0, 1.5]
+
 
       #euclidian distance with periodic boundary 
       def calc_distance(self, r1, r2):
@@ -45,6 +44,7 @@ class diff_map_solver(object):
             r12_[1] = (r1[1] - r2[1] + side_length[1]/2.) % side_length[1] - side_length[1]/2.
             r12_[2] = (r1[2] - r2[2] + side_length[2]/2.) % side_length[2] - side_length[2]/2.
             return np.linalg.norm(r12_)
+            
       
       #determine if two particles have a bond or not 
       def get_bond_value(self, max, r1, r2):
@@ -97,6 +97,7 @@ class diff_map_solver(object):
                   x.append(a)
             return np.max(x)
 
+
       #Calculate the adjacency matrices R (based on euclidian distance) and G (based on bond value: 0 or 1)
       def calculate_R_G(self, configurations):
             R = []
@@ -144,32 +145,34 @@ class diff_map_solver(object):
 
       #Modified IsoRank Algorithm 
       def isorank(self, configurations, R, G):
-            R_ = np.zeros(shape=[len(configurations), 3, 3])
-            G_ = np.zeros(shape=[len(configurations), 3, 3])
-            scores = np.zeros(shape=[len(configurations), len(configurations)])
+            R_ = []
+            G_ = []
+            scores = []
             #temporary array for intermediate steps 
-            temp = np.zeros(shape=[len(configurations), 3, 3])
+            temp = []
             permut = self.generate_permutation_matrices(len(G[0]))  
             for i in range(len(configurations)):
+                  scores.append([])
                   #Test similiarity with all the other configurations 
                   for j in range(len(configurations)):
                         #skip comparing with itself 
                         if j == i:
                               continue
+                        temp.append([])
                         #Trying out all permutations
                         for k in range(len(permut)):
                               # G' = PGP'
-                              G1_ = np.matmul(permut[k].transpose(), np.matmul(G[i], permut[k]))
-                              temp[i] = G1_
+                              G1_ = np.matmul(np.matmul(permut[k], G[i]), permut[k].transpose())
+                              temp[i].append(G1_)
                               #similiarty criteria 
-                              scores[i] = self.calc_similiarty(G1_, G[j])
+                              scores[i].append(self.calc_similiarty(G1_, G[j]))
             #Choosing the global minimum 
             for i in range(len(scores)):
-                  idx = list(scores[i]).index(np.min(scores[i]))
-                  G_[i] = temp[i][idx]
+                  idx = scores[i].index(np.min(scores[i]))
+                  G_.append(temp[i][idx])
                   #rearrange R' with the most similiar arrangement
                   permut_idx = idx%len(permut)
-                  R_[i] = np.matmul(np.matmul(permut[permut_idx], R[i]), permut[permut_idx].transpose())
+                  R_.append(np.matmul(np.matmul(permut[permut_idx], R[i]), permut[permut_idx].transpose()))
             return R_, G_
       
 
@@ -203,19 +206,19 @@ class diff_map_solver(object):
             f.close()
             return a, b, c
 
-
       def compute_d(self, R, G, R_, G_):
             d = np.zeros([self.num_data, self.num_data])
-            for i in range(self.num_input):
-                  for j in range(self.num_input):
+            for i in range(self.num_data):
+                  for j in range(self.num_data):
                         d[i][j] = self.d_ij(R_[i], G_[i], R[j], G[j])
             return d
 
       def compute_A(self, d):
-            A = np.zeros(shape=d.shape)
+            A = []
             for i in range(len(d)):
+                  A.append([])
                   for j in range(len(d[i])):
-                        A[i][j] = np.exp(- (d[i][j]**2)/(2.0*self.sigma))
+                        A[i].append( np.exp(- (d[i][j]**2)/(2.0*self.sigma)))
             return A
       
       def compute_Dij(self, i, A):
@@ -226,13 +229,14 @@ class diff_map_solver(object):
       
       #calculate diaognal matrix 
       def compute_D(self, A):
-            D = np.zeros(shape=A.shape)
+            D = []
             for i in range(len(A)):
+                  D.append([])
                   for j in range(len(A[i])):
                         if i == j:
-                              D[i][j] = self.compute_Dij(i, A)
+                              D[i].append(self.compute_Dij(i, A))
                         else:
-                              D[i][j] = 0.0
+                              D[i].append(0.0)
             return D
 
       def compute_M(self, D, A):
