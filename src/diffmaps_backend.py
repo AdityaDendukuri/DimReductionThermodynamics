@@ -16,11 +16,13 @@ import random
 import itertools
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from numba import jit
 
 
 simulation_min = np.array([-5.0, -5.0, -5.0])
 simulation_max = np.array([5.0, 5.0, 5.0])
 side_length = (simulation_max - simulation_min)
+
 
 
 class diff_map_solver:
@@ -33,8 +35,7 @@ class diff_map_solver:
             self.num_particles = constants['num_particles']
             self.num_data = constants['num_data']
             #self.distance_range = [0.0, 1.3]
-            self.distance_range = [0.0, 1.2]
-
+            self.distance_range = [0.0, 1.5]
 
       #euclidian distance with periodic boundary 
       def calc_distance(self, r1, r2):
@@ -44,7 +45,6 @@ class diff_map_solver:
             r12_[1] = (r1[1] - r2[1] + side_length[1]/2.) % side_length[1] - side_length[1]/2.
             r12_[2] = (r1[2] - r2[2] + side_length[2]/2.) % side_length[2] - side_length[2]/2.
             return np.linalg.norm(r12_)
-            
       
       #determine if two particles have a bond or not 
       def get_bond_value(self, max, r1, r2):
@@ -97,8 +97,8 @@ class diff_map_solver:
                   x.append(a)
             return np.max(x)
 
-
       #Calculate the adjacency matrices R (based on euclidian distance) and G (based on bond value: 0 or 1)
+      @jit(nopython=True)
       def calculate_R_G(self, configurations):
             R = []
             G = []
@@ -109,6 +109,7 @@ class diff_map_solver:
             return np.array(R), np.array(G)
 
       #generate permutation matrices to rearrange R to optimize IsoRank 
+      @jit(nopython=True)
       def generate_permutation_matrices(self, size):
             matrices = []
             I = np.identity(size)
@@ -145,11 +146,11 @@ class diff_map_solver:
 
       #Modified IsoRank Algorithm 
       def isorank(self, configurations, R, G):
-            R_ = []
-            G_ = []
-            scores = []
+            R_ = np.array([])
+            G_ = np.array([])
+            scores = np.array([])
             #temporary array for intermediate steps 
-            temp = []
+            temp = np.array([])
             permut = self.generate_permutation_matrices(len(G[0]))  
             for i in range(len(configurations)):
                   scores.append([])
@@ -177,6 +178,7 @@ class diff_map_solver:
       
 
       #function to compute d_ij for d matrix 
+      @jit(nopython=True)
       def d_ij(self, R_i, G_i, Rj, Gj):
             x = 0.0
             num_particles = self.constants['num_particles']
@@ -206,6 +208,7 @@ class diff_map_solver:
             f.close()
             return a, b, c
 
+
       def compute_d(self, R, G, R_, G_):
             d = np.zeros([self.num_input, self.num_input])
             for i in range(self.num_input):
@@ -214,9 +217,9 @@ class diff_map_solver:
             return d
 
       def compute_A(self, d):
-            A = []
+            A = np.array([])
             for i in range(len(d)):
-                  A.append([])
+                  A.append(np.array([]))
                   for j in range(len(d[i])):
                         A[i].append( np.exp(- (d[i][j]**2)/(2.0*self.sigma)))
             return A
@@ -228,8 +231,9 @@ class diff_map_solver:
            return x
       
       #calculate diaognal matrix 
+      @jit(nopython=True)
       def compute_D(self, A):
-            D = []
+            D = np.array([])
             for i in range(len(A)):
                   D.append([])
                   for j in range(len(A[i])):
