@@ -98,7 +98,6 @@ class diff_map_solver:
             return np.max(x)
 
       #Calculate the adjacency matrices R (based on euclidian distance) and G (based on bond value: 0 or 1)
-      @jit(nopython=True)
       def calculate_R_G(self, configurations):
             R = []
             G = []
@@ -178,7 +177,6 @@ class diff_map_solver:
       
 
       #function to compute d_ij for d matrix 
-      @jit(nopython=True)
       def d_ij(self, R_i, G_i, Rj, Gj):
             x = 0.0
             num_particles = self.constants['num_particles']
@@ -231,7 +229,6 @@ class diff_map_solver:
            return x
       
       #calculate diaognal matrix 
-      @jit(nopython=True)
       def compute_D(self, A):
             D = np.array([])
             for i in range(len(A)):
