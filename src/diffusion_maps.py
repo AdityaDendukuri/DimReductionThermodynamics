@@ -33,7 +33,7 @@ class diff_map_solver:
             self.num_particles = constants['num_particles']
             self.num_data = constants['num_data']
             #self.distance_range = [0.0, 1.3]
-            self.distance_range = [0.0, 1.2]
+            self.distance_range = [0.0, 1.5]
 
 
       #euclidian distance with periodic boundary 
@@ -245,6 +245,8 @@ class diff_map_solver:
       def generate_eigenspace(self, M):
             return np.linalg.eig(M)
 
+        
+            
       def plot_explained_variance(self, eig_vals):
             fig = plt.figure(figsize=(10, 8))
             ax = fig.add_subplot(111)
@@ -287,22 +289,21 @@ class diff_map_solver:
       
       def plot_new_space_2d(self, eigvals, eigvecs, potentials):
             fig = plt.figure(figsize=(10, 8))
-            ax = fig.add_subplot(111)
-            x_plt = []
-            y_plt = []
+            ax = fig.add_subplot(111)  
+            c = []
             temp = []
+            temp = sorted(temp,reverse=True)
             for i in range(len(eigvals)):
-                  temp.append(eigvals[i])
-            np.sort(temp)
+                temp.append(eigvals[i])
             idx1 = self.index(eigvals, temp[1])
             idx2 = self.index(eigvals, temp[2])
             x_plt = []
             y_plt = []
-            for i in range(len(eigvecs)):
-                  x_plt.append(eigvecs[i][idx1])
-                  y_plt.append(eigvecs[i][idx2])
-            ax.scatter(x_plt, y_plt, c=potentials)
-            plt.savefig("new_2d_space.png")
+            for i in range(len(eigvecs)): 
+                x_plt.append(np.array(eigvecs[i][idx1].real))
+                y_plt.append(np.array(eigvecs[i][idx2].real))
+                c.append(potentials[i])
+            ax.scatter(np.array(x_plt), np.array(y_plt), c=np.reshape(c,len(c)))
       
       def plot_2d(self, x_plt, y_plt, potentials):
             fig = plt.figure(figsize=(10, 8))
@@ -330,9 +331,11 @@ class diff_map_solver:
             x_plt = []
             y_plt = []
             temp = []
+            
             for i in range(len(eigvals)):
                   temp.append(eigvals[i])
-            np.sort(temp)
+            temp = sorted(temp,reverse=True)
+            
             idx1 = self.index(eigvals, temp[1])
             idx2 = self.index(eigvals, temp[2])
             x_plt = []
@@ -347,33 +350,28 @@ class diff_map_solver:
             plt.savefig("new_2d_space.png")
             plt.show()
 
-      def plot_new_space_3d(self, eigvals, eigvecs, potentials):
-            fig = plt.figure(figsize=(10, 8))
-            ax = fig.add_subplot(111, projection='3d')                        
-            temp = []
-            np.sort(temp)
-            for i in range(len(eigvals)):
-                  temp.append(eigvals[i])
-            idx1 = self.index(eigvals, temp[1])
-            idx2 = self.index(eigvals, temp[2])
-            idx3 = self.index(eigvals, temp[3])
-            x_plt = []
-            y_plt = []
-            z_plt = []
-            for i in range(len(eigvecs)):
-                  x_plt.append(np.array(eigvecs[i][idx1].real))
-                  y_plt.append(np.array(eigvecs[i][idx2].real))
-                  z_plt.append(np.array(eigvecs[i][idx3].real))
-            self.save_trajectories(x_plt, y_plt, z_plt, '0.18')
-            ax.scatter(np.array(x_plt), np.array(y_plt), np.array(z_plt), c=potentials[:self.num_data])
-            plt.show()
-      
-     
 
-
-
-
-
+       def plot_new_space_3d(self, eigvals, eigvecs, potentials):
+           fig = plt.figure(figsize=(10, 8))
+           ax = fig.add_subplot(111, projection='3d')  
+           c = []
+           temp = []
+           temp = sorted(temp,reverse=True)
+           for i in range(len(eigvals)):
+                   temp.append(eigvals[i])
+           idx1 = self.index(eigvals, temp[1])
+           idx2 = self.index(eigvals, temp[2])
+           idx3 = self.index(eigvals, temp[3])
+           x_plt = []
+           y_plt = []
+           z_plt = []
+           for i in range(len(eigvecs)): 
+               x_plt.append(np.array(eigvecs[i][idx1].real))
+               y_plt.append(np.array(eigvecs[i][idx2].real))
+               z_plt.append(np.array(eigvecs[i][idx3].real))
+               c.append(potentials[i])
+           ax.scatter(np.array(x_plt), np.array(y_plt), np.array(z_plt), c=np.reshape(c,len(c)))
+           plt.show()
 
 
 

@@ -24,13 +24,15 @@ class NEURAL_NET:
             self.current_loss = 0.01
             #DEFINING TENSORFLOW GRAPH BELOW
             self.graph = tf.Graph()
+            #define parameters (weights and biases)
+            self.weights = []
+            self.residual_weights = []
+            self.biases = []
+            #defining weights 
             with self.graph.as_default():
-                  #define parameters (weights and biases)
-                  self.weights = []
-                  self.biases = []
-                  #defining weights 
                   for i in range(len(structure)-1):
                         self.weights.append(tf.Variable(tf.random_normal(shape=[structure[i], structure[i+1]])))
+                        self.residual_weights.append(tf.Variable(tf.random_normal(shape=[structure[0], structure[i+1]])))
                         self.biases.append(tf.Variable(tf.random_normal(shape=[1, structure[i+1]])))
                   #placeholders representing input and output 
                   self.H = tf.placeholder("float", [None, self.dim_H])
@@ -51,7 +53,7 @@ class NEURAL_NET:
                   self.init_nn_node = tf.global_variables_initializer()
                   self.saver = tf.train.Saver()
 
-
+            
       #train the neural network to learn based on lables 
       def train(self, features, labels, test_set_size = 100, restore = True, save = True, model_save_dir = '../models/T018_1.ckpt', num_steps = 10000, display_step = 1000):                               
             #split data for testing and training 
@@ -86,6 +88,7 @@ class NEURAL_NET:
             return reduced_dimension
 
       def reduce_dimension(self, x):
+            inp = np.copy(x)
             for i in range(len(self.weights)-1):
                   x = tf.add(tf.matmul(x, self.weights[i]), self.biases[i]) 
                   if self.activations[i] == 'tanh':
@@ -96,8 +99,12 @@ class NEURAL_NET:
                         continue
                   if self.activations[i] == 'relu':
                         x = tf.nn.relu(x)
+                        continue
                   if self.activations[i] == 'softmax':
                         x = tf.nn.softmax(x)
+                        continue
+                  #residual mapping
+                  x = x + tf.matmul(inp, self.residual_weights[i])
             return x 
       
       
