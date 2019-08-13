@@ -96,8 +96,10 @@ class NEURAL_NET:
                         continue
                   if self.activations[i] == 'relu':
                         x = tf.nn.relu(x)
+                        continue
                   if self.activations[i] == 'softmax':
                         x = tf.nn.softmax(x)
+                        continue
             return x 
       
       

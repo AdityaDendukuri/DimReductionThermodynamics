@@ -14,7 +14,7 @@ def load_features(path, num_particles):
     file_to_parse = open(path, "r")
     lines = file_to_parse.readlines()
     for x in lines:
-        data = x.split()
+        data = x.split(',')
         
         if len(data) != num_particles*3:
             continue
