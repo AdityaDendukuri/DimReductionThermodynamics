@@ -1,2 +1,2 @@
-model_checkpoint_path: "resnet13_1P.ckpt"
-all_model_checkpoint_paths: "resnet13_1P.ckpt"
+model_checkpoint_path: "13p_t4_1.ckpt"
+all_model_checkpoint_paths: "13p_t4_1.ckpt"
